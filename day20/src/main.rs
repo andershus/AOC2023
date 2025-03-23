@@ -15,7 +15,10 @@ fn collect_input(input: &str) -> (HashMap<&str, (char, Vec<&str>, usize)>, Vec<V
             .map(|c| (c, &module_w_type[c.len_utf8()..]))
             .unwrap();
         let outputs = output_str.split(", ").collect::<Vec<_>>();
-        mapping.insert(module, (module_type, outputs, if i > 0 { i - 1 } else { 0 }));
+        mapping.insert(
+            module,
+            (module_type, outputs, if i > 0 { i - 1 } else { 0 }),
+        );
     }
     for (i, line) in input.lines().enumerate() {
         let (module_w_type, output_str) = line.split_once(" -> ").unwrap();
@@ -29,7 +32,7 @@ fn collect_input(input: &str) -> (HashMap<&str, (char, Vec<&str>, usize)>, Vec<V
                 Some((module_type, _, index)) => {
                     if module_type == &'&' {
                         // for conjunction we use 0 to denote last signal was low and 1 to denote last signal was high
-                        initial_state[*index][i-1] = 1;
+                        initial_state[*index][i - 1] = 1;
                     }
                 }
                 // not every module sends a signal to another module
@@ -51,7 +54,13 @@ fn part1(input: &str) -> usize {
         let mut low_signals = 1;
         let mut high_signals = 0;
         let mut state = state_to_signals.last().unwrap().0.clone();
-        let signals = &mut mapping.get(&"roadcaster").unwrap().1.iter().map(|&s| (s, 0, "roadcaster")).collect::<VecDeque<_>>();
+        let signals = &mut mapping
+            .get(&"roadcaster")
+            .unwrap()
+            .1
+            .iter()
+            .map(|&s| (s, 0, "roadcaster"))
+            .collect::<VecDeque<_>>();
         signals.push_back(("inv", 1, "c"));
         signals.push_back(("a", 0, "inv"));
         signals.push_back(("b", 0, "a"));
@@ -67,38 +76,38 @@ fn part1(input: &str) -> usize {
             }
             match mapping.get(destination) {
                 Some((module_type, outputs, index)) => {
-                match module_type {
-                    // flip-flop
-                    '%' => {
-                        println!("{} is flip-flop in state {:?}", destination, state[*index]);
-                        if strength == 0 {
+                    match module_type {
+                        // flip-flop
+                        '%' => {
+                            println!("{} is flip-flop in state {:?}", destination, state[*index]);
+                            if strength == 0 {
+                                if state[*index] == off {
+                                    state[*index] = on.clone();
+                                    // for output in outputs {
+                                    //     signals.push_back((output, 1, destination));
+                                    // }
+                                } else {
+                                    state[*index] = off.clone();
+                                    // for output in outputs {
+                                    //     signals.push_back((output, 1, destination));
+                                    // }
+                                }
+                            }
+                        }
+                        // conjunction
+                        '&' => {
+                            state[*index][mapping.get(&source).unwrap().2] = 1 - strength;
                             if state[*index] == off {
-                                state[*index] = on.clone();
                                 // for output in outputs {
-                                //     signals.push_back((output, 1, destination));
+                                //     signals.push_back((output, 0, destination));
                                 // }
                             } else {
-                                state[*index] = off.clone();
                                 // for output in outputs {
                                 //     signals.push_back((output, 1, destination));
                                 // }
                             }
                         }
-                    },
-                    // conjunction
-                    '&' => {
-                        state[*index][mapping.get(&source).unwrap().2] = 1 - strength;
-                        if state[*index] == off {
-                            // for output in outputs {
-                            //     signals.push_back((output, 0, destination));
-                            // }
-                        } else {
-                            // for output in outputs {
-                            //     signals.push_back((output, 1, destination));
-                            // }
-                        }
-                    },
-                    _ => panic!("Invalid input"),
+                        _ => panic!("Invalid input"),
                     }
                 }
                 None => (),
@@ -110,7 +119,10 @@ fn part1(input: &str) -> usize {
             println!("found solution");
             break;
         } else {
-            println!("pushing state {:?} having processed {:?} + {:?} signals", state, low_signals, high_signals);
+            println!(
+                "pushing state {:?} having processed {:?} + {:?} signals",
+                state, low_signals, high_signals
+            );
             state_to_signals.push((state, low_signals + high_signals));
             low_signals = 1;
             high_signals = 0;

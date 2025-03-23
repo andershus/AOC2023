@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use std::collections::HashSet;
 
 fn collect_input_part1(input: &str) -> Vec<((isize, isize), usize)> {
@@ -43,7 +44,7 @@ fn get_interior(
     }
 }
 
-fn display_trench(positions: &HashSet::<(isize, isize)>) -> () {
+fn display_trench(positions: &HashSet<(isize, isize)>) -> () {
     let mut result = String::new();
     for y in (-9..1).rev() {
         for x in 0..7 {
@@ -58,42 +59,55 @@ fn display_trench(positions: &HashSet::<(isize, isize)>) -> () {
     }
 }
 
-fn part1(input: &str) -> (usize, usize) {
+fn part1(input: &str) -> usize {
     let mut pos = (0, 0);
-    let mut trench = Vec::new();
+    let mut trench = vec![pos];
     for line in collect_input_part1(input).iter() {
         let dir = line.0;
-        trench.push(pos);
         for _ in 1..line.1 + 1 {
             pos.0 += dir.0;
             pos.1 += dir.1;
             trench.push(pos);
         }
     }
-    let mut trench_left = Vec::new();
-    let mut trench_right = Vec::new();
-    for line in collect_input_part1(input).iter() {
-        let dir = line.0;
-        trench_left.extend(get_interior(&trench, &pos, &(-dir.0, dir.1), 100));
-        trench_right.extend(get_interior(&trench, &pos, &(dir.1, - dir.0), 100));
-        for _ in 1..line.1 + 1 {
-            pos.0 += dir.0;
-            pos.1 += dir.1;
-            trench_left.extend(get_interior(&trench, &pos, &(-dir.0, dir.1), 100));
-            trench_right.extend(get_interior(&trench, &pos, &(dir.1, - dir.0), 100));
-        }
+    let mut area = 0;
+    for (p1, p2) in trench //[(1, 6), (3, 1), (7, 2), (4, 4), (8, 5), (1, 6)]
+        .iter()
+        .tuple_windows()
+    {
+        area += p1.0 * p2.1 - p1.1 * p2.0;
     }
-    let trench_hash = HashSet::<(isize, isize)>::from_iter(trench);
+    dbg!((area as f64 / 2.0).abs());
+    dbg!((trench.len() - 1) as f64 / 2.0);
+
+    // let mut trench_left = Vec::new();
+    // let mut trench_right = Vec::new();
+    // for line in collect_input_part1(input).iter() {
+    //     let dir = line.0;
+    //     trench_left.extend(get_interior(&trench, &pos, &(-dir.0, dir.1), 100));
+    //     trench_right.extend(get_interior(&trench, &pos, &(dir.1, -dir.0), 100));
+    //     for _ in 1..line.1 + 1 {
+    //         pos.0 += dir.0;
+    //         pos.1 += dir.1;
+    //         trench_left.extend(get_interior(&trench, &pos, &(-dir.0, dir.1), 100));
+    //         trench_right.extend(get_interior(&trench, &pos, &(dir.1, -dir.0), 100));
+    //     }
+    // }
+    // let trench_hash = HashSet::<(isize, isize)>::from_iter(trench);
     // dbg!(&trench_hash.len());
     // dbg!(&trench_left);
     // dbg!(&trench_left.len());
-    let trench_left_hash = HashSet::from_iter(trench_left);
-    let trench_right_hash = HashSet::from_iter(trench_right);
+    // let trench_left_hash = HashSet::from_iter(trench_left);
+    // let trench_right_hash = HashSet::from_iter(trench_right);
     // dbg!(&trench_right_hash.len());
     // display_trench(&trench_hash);
     // display_trench(&trench_right_hash);
     // println!("{:?}",&trench_right);
-    (trench_hash.union(&trench_left_hash).count(), trench_hash.union(&trench_right_hash).count())
+    // (
+    //     trench_hash.union(&trench_left_hash).count(),
+    //     trench_hash.union(&trench_right_hash).count(),
+    // )
+    0
 }
 
 fn collect_input(input: &str) -> Vec<((isize, isize), usize, &str)> {
@@ -157,7 +171,7 @@ U 2 (#7a21e3)";
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(&TEST_INPUT), (49, 62));
+        assert_eq!(part1(&TEST_INPUT), 62);
     }
 
     // too low: 7316, 15077, 36521
